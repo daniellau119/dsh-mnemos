@@ -1,0 +1,26 @@
+# Dependencies and build output
+node_modules/
+.pnpm-store/
+
+# Tool scratch dirs (office previews etc.)
+.dsh-office-*/
+
+# Local config and ledger -- never versioned
+.dsh/
+ledger*.jsonl
+config.json
+runtime.json
+
+# Generated tech doc (local artifact)
+docs/*.docx
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs and temp
+*.log
+*.tmp
+*.bak
