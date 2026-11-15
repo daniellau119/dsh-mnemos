@@ -11,8 +11,8 @@ ledger*.jsonl
 config.json
 runtime.json
 
-# Generated tech doc (local artifact)
-docs/*.docx
+# Local-only docs: generated tech doc + its build script
+docs/
 
 # Editor / OS
 .vscode/
