@@ -347,9 +347,71 @@ prev = 上一筆的 hash（創世記 = 64 個 0）
 
 ---
 
+## 跟其他記憶方案的差別
+
+市面上的 agent 記憶系統大多在解決兩件事：**怎麼存更多**、**怎麼找得更準**。
+這個插件在解決第三件：**怎麼讓記下的東西自己演變 —— 變短、變淡、變錯、變過期，而且每一步都留痕**。
+
+### 重疊的部分（不新鮮）
+
+| 能力 | 誰已經有 |
+|---|---|
+| 分層記憶 | [MemGPT](https://github.com/Aiken7881/manxueai-agentic-struct/blob/main/stages/06-memory-rag.en.md#3) 的 working/archival、MemoryBank 的三層、[Sentio 的 three-tier](https://huggingface.co/spaces/mozoj4/sentio-backend/blob/048248e8d8e5d53d414f69da3bb6b0d844ad371a/services/memory_service.py#1) |
+| 遺忘曲線 | MemoryBank 直接用艾賓浩斯；Sentio 用 `cosine × exp(−λ·age) × importance` |
+| 記憶整併 | [VividnessMem](https://github.com/Kronic90/VividnessMem-Ai-Roommates#1) 的 consolidation、[SCM](https://zenodo.org/records/21323877/files/SCM_Final_Paper.pdf?download=1#1#9#1) 的 idle-time consolidation |
+
+### 不一樣的地方
+
+**1. 遺忘的是內容，不只是權重**
+
+其他系統的衰減影響**排序與踢出**，記憶本身的文字不變。這裡的 T3 是**真的在變短**：
+壓縮節奏自己也在衰減（`25% × 0.84^n`），從 975 字走到 199 字要 16 輪、112 天。
+
+把「遺忘」建模成**資訊量損失**，而不是「權重下降」—— 這是這份設計裡最核心的一點。
+
+**2. 過期的預測要留在眼前**
+
+`T5` 帶到期日，**過期後仍然留在提示詞裡**，標上 `⏰已過期`，逼模型去問本人結果如何。
+只有被 `mnemos_void` 掉才真正離開。
+
+多數系統把「未來」當普通記憶存著 —— 要麼忘光，要麼永遠當現狀。
+
+**3. 作廢是完整機制，不是刪除**
+
+很多系統在這件事上是空的。一份 2026 年的 agent memory 綜述直接把
+[「沒有矛盾消解」列為已知缺陷](https://huggingface.co/datasets/quantellence/srb-data/blob/main/datasets/public_ai_memory/papers/15_hindsight.md#1)：
+
+> *No contradiction resolution for world facts. Superseded facts remain queryable with no explicit invalidation.*
+
+這裡的 `mnemos_void` 不動內容一個字，只標「不成立了、為甚麼、被誰取代」，
+原條留在帳本與倉庫、`recall` 仍搜得到並標 `voided: true`。
+
+**4. 一條對一條，不合併**
+
+VividnessMem 會把 3 條以上相關記憶合成 gist，這裡**不做合併**。
+代價是不能把幾段經歷濃縮成一段更好的總結；好處是每條經歷的壓縮史完整可追
+（`condensedFrom` / `condenseCount` / `originalLen`），帳本上看得出它被壓過幾次、最初多長。
+
+**5. 分層按生命週期，不是按儲存位置**
+
+T1/T2/T3 不是熱/溫/冷資料，而是 **「永遠為真」/「沉澱下來的梗概」/「會變淡的經歷」**。
+
+### 沒有的（客觀說）
+
+| 缺什麼 | 影響 |
+|---|---|
+| 向量檢索 | `recall` 是關鍵詞匹配 + salience 排序。語義相近但字面不同就搜不到 |
+| 矛盾自動檢測 | 作廢靠模型在對話裡意識到；不會主動掃出兩條互斥的事實 |
+| 元記憶 | 沒有「我知不知道 X」這類自省 |
+| 多用戶隔離 | 單一帳本，不支援多租戶 |
+
+---
+
 ## 界線說明
 
 這個插件假設模型會**誠實地**判斷「這值不值得記」。它防得住格式、防得住憑據外洩、
 防得住靜默篡改，但防不住模型把不重要的事寫得很多。
+
+真正在管品質的是：**上限、衰減、壓縮、作廢** —— 而不是規則的數量。
 
 真正在管品質的是：**上限、衰減、壓縮、作廢** —— 而不是規則的數量。
