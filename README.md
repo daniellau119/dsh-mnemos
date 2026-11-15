@@ -1,10 +1,14 @@
 <div align="center">
 
-# 心相 · dsh-mnemos
+# dsh-mnemos
 
-**跨會話的記憶，以及由記憶長出來的性格。**
+[English](README.en.md)
 
-不是角色扮演 —— 記憶、性格、喜好三者互相影響，全部由插件自己沉澱。
+> 跨會話記憶與人格插件 · 版本 `v1.7.0` · 2026-11-15
+
+`dsh-mnemos` 是為 DSH 宿主進程打造的長期記憶與人格成長引擎。它讓模型擁有一份會自我演化、分層沉澱、可被追問的記憶，以及一張由對話親手「長出來」的性格卡。
+
+---
 
 ![DSH plugin](https://img.shields.io/badge/DSH-plugin-blue) ![version](https://img.shields.io/badge/v1.7.0-green)
 
@@ -21,6 +25,19 @@
 - **會過期** —— 「下個月要結婚」過了就該去問
 - **會出錯** —— 本人說「我說錯了」時，舊的要能作廢且留痕
 
+整個系統的取捨，可以濃縮成四句話：
+
+1. **唯一真相是帳本**  
+   所有狀態（記憶、性格、六維、設定）皆由 `ledger.jsonl` 重放而成，沒有第二份可被隨手改寫的狀態檔。
+
+2. **模型能加，不能改**  
+   刪除、回滾、匯入是「本人」的權限；模型只能寫入新記憶，或透過 `mnemos_void` 標記「不成立了」。
+
+3. **怎麼記由插件決定，記什麼由模型決定**  
+   字數上限、衰減公式、壓縮節奏全部寫死在程式碼裡；模型的自由度只在內容、層級、維度與重要性。
+
+4. **壓縮是前快後慢的**  
+   一條經歷被反覆重講，越壓越輕，最終沉澱成一句話的「大概」。
 ---
 
 ## 記憶分五層
@@ -146,6 +163,59 @@ hash = sha256({v, seq, ts, kind, actor, payload, prev})
 
 模型沒有的：**刪除、改寫、回滾、匯入、設定總開關**。這些只有本人能碰。
 
+### 插件本體
+
+| 檔案 | 職責 |
+|---|---|
+| `index.js` | 註冊工具、注入系統提示、起心跳 |
+| `lib/model.js` | 分層常數、衰減公式、注入渲染 |
+| `lib/store.js` | 帳本讀寫、投影重放、寫入路徑 |
+| `lib/tools.js` | 工具 schema 與轉接 |
+| `lib/duty.js` | 谷時判斷、值守排程、壓縮清單 |
+| `lib/routes.js` | HTTP 路由 |
+| `client.js` | 前端心相頁 |
+
+---
+
+## 可調參數
+
+以下參數開放給模型自行調整，但皆有硬範圍；超出時會被「夾到邊界」，而非拒絕。
+
+| 參數 | 預設 | 範圍 | 說明 |
+|---|:--:|:--:|---|
+| `injectCount` | 12 | 1–24 | 每次注入幾條 |
+| `injectBudget` | 1800 | 600–3200 | 注入字數預算 |
+| `reflectionEveryHours` | 24 | 6–72 | 多久反思一次 |
+| `biliEveryHours` | 20 | 6–72 | 多久刷一次 B 站 |
+| `dutyMaxPerDay` | 2 | 1–4 | 每天最多幾輪值守 |
+| `tier4TtlDays` | 3 | 0–90 | 暫存區保留天數（0 = 不過期） |
+
+刷 B 站另有白名單參數（`perDay`、`fetchPerRound`、`keywords` 等），帳號、私信、自動評論等敏感項目由本人掌握，不開放模型調整。
+
+---
+
+## 記錄類型
+
+`ledger.jsonl` 裡只有這幾種記錄，每筆都由誰寫是固定的。
+
+| kind | 誰寫 | 說明 |
+|---|---|---|
+| `genesis` | plugin | 帳本誕生／重置 |
+| `memory.write` | model | 新記憶（T1 / T3 / T4 / T5） |
+| `memory.condense` | model | 壓縮一條 T3 |
+| `memory.compress` | plugin | 產生 T2 的唯一通道 |
+| `memory.upgrade` | plugin | T4 升級為 T3 |
+| `memory.void` | model | 標記作廢 |
+| `persona.revise` | model | 修訂性格卡 |
+| `persona.foundation` | user | 改性格底座 |
+| `understanding.revise` | model | 六維打分 |
+| `inject.profile` | model | 調注入量 |
+| `rhythm.profile` | model | 調節律 |
+| `rollback` | user | 回滾快照 |
+| `chain.repair` | user | 封存斷鏈 |
+
+帳本裡另有 `memory.revise`、`memory.forget`、`origin.set` 三種舊記錄，是已移除能力的殘留，重放時照樣讀得過，但不再產生新的。
+
 ---
 
 ## 谷時值守
@@ -213,3 +283,10 @@ hash = sha256({v, seq, ts, kind, actor, payload, prev})
 防不住模型把不重要的事寫得很多。
 
 真正在管品質的是**上限、衰減、壓縮、作廢** —— 不是規則的數量。
+
+---
+
+## 文檔
+
+- [技術文檔 v2（`.docx`）](docs/dsh-mnemos-tech-v2.docx)
+

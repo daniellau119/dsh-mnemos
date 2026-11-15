@@ -12,7 +12,8 @@ config.json
 runtime.json
 
 # Local-only docs: generated tech doc + its build script
-docs/
+docs/build_doc.py
+docs/*.tmp.*
 
 # Editor / OS
 .vscode/
