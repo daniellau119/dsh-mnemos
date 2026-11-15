@@ -14,6 +14,7 @@ runtime.json
 # Local-only docs: generated tech doc + its build script
 docs/build_doc.py
 docs/*.tmp.*
+docs/dsh-mnemos-技術文檔.docx
 
 # Editor / OS
 .vscode/
