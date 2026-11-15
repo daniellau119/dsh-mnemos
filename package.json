@@ -1,9 +1,9 @@
-{
-  "name": "dsh-mnemos",
+﻿{
+  "name": "dsh-silt",
   "version": "1.7.0",
   "private": true,
   "type": "module",
-  "description": "Mnemos — cross-session memory, self-evolving persona and taste, drawn as a constellation.",
+  "description": "Silt — cross-session memory, self-evolving persona and taste, drawn as a constellation.",
   "exports": {
     ".": "./index.js",
     "./client": "./client.js",

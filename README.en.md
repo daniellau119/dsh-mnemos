@@ -1,12 +1,12 @@
-<div align="center">
+﻿<div align="center">
 
-# dsh-mnemos
+# dsh-silt
 
 [中文](README.md)
 
 > Cross-session memory and persona plugin for DSH · `v1.7.0` · 2026-11-15
 
-`dsh-mnemos` is a long-term memory and persona-growth engine built for the DSH host process. It gives a model a memory that self-evolves, settles in layers, and can be interrogated — plus a persona card that grows out of the conversation itself.
+`dsh-silt` is a long-term memory and persona-growth engine built for the DSH host process. It gives a model a memory that self-evolves, settles in layers, and can be interrogated — plus a persona card that grows out of the conversation itself.
 
 ---
 
@@ -31,7 +31,7 @@ The whole design comes down to four sentences:
    Every piece of state (memories, persona, six dimensions, settings) is replayed from `ledger.jsonl`. There is no second state file that can be quietly rewritten.
 
 2. **The model can add, never modify**  
-   Delete, rollback and import are the user's powers. The model can write a new memory, or flag one as "no longer true" with `mnemos_void`.
+   Delete, rollback and import are the user's powers. The model can write a new memory, or flag one as "no longer true" with `silt_void`.
 
 3. **The plugin decides *how* it is stored; the model decides *what* is stored**  
    Character limits, decay formulas and compression cadence are all hard-coded. The model's freedom is content, tier, dimensions and salience.
@@ -99,7 +99,7 @@ model → condense(id, title, body)
         └─ no  → still T3, wait for the next round
 ```
 
-`mnemos_remember` only accepts `tier` 1 / 3 / 4 / 5 — **`tier: 2` is rejected outright**.
+`silt_remember` only accepts `tier` 1 / 3 / 4 / 5 — **`tier: 2` is rejected outright**.
 
 Why: if the model could write T2 directly, it would bypass the whole compression path and pin whatever it likes onto a terminal state.
 
@@ -133,7 +133,7 @@ Voided memories are not injected, but the ledger and the store keep them. `recal
 
 ## How memory is stored
 
-There is exactly one source of truth: `<DSH_HOME>/mnemos/ledger.jsonl` — append-only, hash-chained per record.
+There is exactly one source of truth: `<DSH_HOME>/Silt/ledger.jsonl` — append-only, hash-chained per record.
 
 ```
 hash = sha256({v, seq, ts, kind, actor, payload, prev})
@@ -149,16 +149,16 @@ Every mutation carries before/after snapshots and can be rolled back by id.
 
 | Tool | What it does |
 |---|---|
-| `mnemos_recall` | Search memories. The only entry point that can see T4 |
-| `mnemos_remember` | Write one (T1 / T3 / T4 / T5 — **T2 cannot be written**) |
-| `mnemos_void` | Mark as void (content unchanged) |
-| `mnemos_condense` | Retell a T3 in fewer words |
-| `mnemos_persona` | Persona card and self-view |
-| `mnemos_understanding` | Six-dimension scoring |
-| `mnemos_duty` | Read/adjust own rhythm |
-| `mnemos_inject` | Read/adjust injection size |
-| `mnemos_bili` | Bilibili browsing parameters |
-| `mnemos_archive` | Verify the hash chain |
+| `silt_recall` | Search memories. The only entry point that can see T4 |
+| `silt_remember` | Write one (T1 / T3 / T4 / T5 — **T2 cannot be written**) |
+| `silt_void` | Mark as void (content unchanged) |
+| `silt_condense` | Retell a T3 in fewer words |
+| `silt_persona` | Persona card and self-view |
+| `silt_understanding` | Six-dimension scoring |
+| `silt_duty` | Read/adjust own rhythm |
+| `silt_inject` | Read/adjust injection size |
+| `silt_bili` | Bilibili browsing parameters |
+| `silt_archive` | Verify the hash chain |
 
 What the model does not have: **delete, rewrite, rollback, import, master switch**. Only the user can touch these.
 
@@ -285,4 +285,4 @@ What actually governs quality is **limits, decay, compression, voiding** — not
 
 ## Docs
 
-- [Technical documentation (v2, Chinese, `.docx`)](docs/dsh-mnemos-tech-v2.docx)
+- [Technical documentation (v2, Chinese, `.docx`)](docs/dsh-silt-tech-v2.docx)

@@ -1,5 +1,5 @@
-/**
- * dsh-mnemos —— 瀏覽器半端（左側欄的一頁）
+﻿/**
+ * dsh-silt —— 瀏覽器半端（左側欄的一頁）
  * ===========================================================================
  * 進場方式：`sidebar.panellist` 放一顆星圖圖示（id 必須等於 main 的 key），
  * 側欄自己負責按鈕與選中；`main` 放整頁內容。
@@ -10,25 +10,25 @@
  *
  * 語言：這一頁自己管。右上角有中文／English 兩顆鍵，選了就記在 localStorage，
  *       不跟宿主的全局語言走 —— 之前跟著走，結果宿主預設英文，這頁就一半中文一半英文。
- *       「Mnemos」是專名，不譯。
+ *       「Silt」是專名，不譯。
  *
  * 顏色只用 --dsw-alias-* token，只有星圖裡的星點用自帶色（那是畫作，不是介面）。
  */
 window.__ModuleLoader__.load({
-  id: 'dsh-mnemos',
+  id: 'dsh-silt',
   factory: (require) => {
     const React = require('react')
     const h = React.createElement
     const { useCallback, useEffect, useMemo, useRef, useState } = React
 
-    const API = '/api/mnemos'
+    const API = '/api/silt'
 
     /* ───────────────────────── 文案 ───────────────────────── */
 
     const DICT = {
       en: {
-        nav: 'Mnemos',
-        title: 'Mnemos',
+        nav: 'Silt',
+        title: 'Silt',
         subtitle: 'memory, persona and taste that grow across sessions',
 
         master: 'Enabled',
@@ -85,7 +85,7 @@ window.__ModuleLoader__.load({
         preferences: 'Taste',
         foundation: 'System command',
         foundation_label: 'System command — only you can write or change it; it is injected verbatim as the first line',
-        foundation_hint: 'The only part that belongs to you: editable here and nowhere else, and it cannot touch it itself. Currently one line telling it that memory only goes through the mnemos_* tools.',
+        foundation_hint: 'The only part that belongs to you: editable here and nowhere else, and it cannot touch it itself. Currently one line telling it that memory only goes through the Silt_* tools.',
         foundation_edit: 'Edit the system command',
         foundation_save: 'Save system command',
         foundation_cancel: 'Cancel',
@@ -193,11 +193,11 @@ window.__ModuleLoader__.load({
         bili_excludeWords: 'excluded words',
 
         /* 刷B站設定頁上的橫幅 */
-        bili_banner: 'Owned by Mnemos',
+        bili_banner: 'Owned by Silt',
         bili_hold_yes: 'it may call the B站 tools by itself — the numbers below are under its control too',
         bili_hold_no: 'it may NOT call the B站 tools',
         bili_hold_always: 'the master switch is off, so it may not call them',
-        bili_banner_go: 'Open Mnemos',
+        bili_banner_go: 'Open Silt',
 
         /* 依據鏈與回滾 */
         safety: 'Chain & rollback',
@@ -246,8 +246,8 @@ window.__ModuleLoader__.load({
         error: 'Something failed',
       },
       zh: {
-        nav: 'Mnemos',
-        title: 'Mnemos',
+        nav: 'Silt',
+        title: 'Silt',
         subtitle: '跨會話長出來的記憶、性格與喜好',
 
         master: '啟用',
@@ -304,7 +304,7 @@ window.__ModuleLoader__.load({
         preferences: '偏好',
         foundation: '系統命令',
         foundation_label: '系統命令 —— 只有你能寫、能改；原樣注入在提示詞最前面',
-        foundation_hint: '唯一屬於你的部分：只在這一頁可改，它自己動不了。現在是一句「記憶只走 mnemos_* 工具」。',
+        foundation_hint: '唯一屬於你的部分：只在這一頁可改，它自己動不了。現在是一句「記憶只走 Silt_* 工具」。',
         foundation_edit: '寫入系統命令',
         foundation_save: '保存系統命令',
         foundation_cancel: '取消',
@@ -412,11 +412,11 @@ window.__ModuleLoader__.load({
         bili_excludeWords: '排除詞',
 
         /* 刷B站設定頁上的橫幅 */
-        bili_banner: '由 Mnemos 管',
+        bili_banner: '由 Silt 管',
         bili_hold_yes: '它可自行調用 B站 工具；下面那些數字也歸它按喜好調整',
         bili_hold_no: '它不可以自行調用 B站 工具',
-        bili_hold_always: 'Mnemos 的總開關是關的，所以它不可以調用',
-        bili_banner_go: '打開 Mnemos',
+        bili_hold_always: 'Silt 的總開關是關的，所以它不可以調用',
+        bili_banner_go: '打開 Silt',
 
         /* 依據鏈與回滾 */
         safety: '依據鏈與回滾',
@@ -488,10 +488,10 @@ window.__ModuleLoader__.load({
     /* ───────────────────────── 語言 ───────────────────────── */
 
     /**
-     * 這一頁的語言是一個自己持有的小狀態：`mnemos.lang` ∈ {'zh','en'}，存在 localStorage。
+     * 這一頁的語言是一個自己持有的小狀態：`Silt.lang` ∈ {'zh','en'}，存在 localStorage。
      * 只有這頁的文案跟著它動；宿主的語言管它的介面，不管這裡。
      */
-    const LANG_KEY = 'mnemos.lang'
+    const LANG_KEY = 'Silt.lang'
     const LANG_LIST = ['zh', 'en']
     const normalizeLang = (v) => {
       const s = String(v || '').toLowerCase()
@@ -769,12 +769,12 @@ window.__ModuleLoader__.load({
 
     /**
      * 樣式**不在前端**：桌面包會把 CSS 字串整段丟掉，所以改由宿主端在
-     * /api/mnemos/style.css 供一份真正的 CSS 檔，這裡只掛一個 <link> 指過去。
+     * /api/silt/style.css 供一份真正的 CSS 檔，這裡只掛一個 <link> 指過去。
      * 宿主端改 CSS 只要重啟一次，不必重裝插件。
      */
     function ensureStyles() {
       if (typeof document === 'undefined') return
-      const id = 'mnemos-style-link'
+      const id = 'Silt-style-link'
       let node = document.getElementById(id)
       if (!node) {
         node = document.createElement('link')
@@ -2139,7 +2139,7 @@ window.__ModuleLoader__.load({
 
     /* ───────────────────────── 刷B站設定頁上的橫幅 ───────────────────────── */
 
-    /* Mnemos 現在的持倉（總開關 + B站許可），給刷B站那頁的橫幅用 */
+    /* Silt 現在的持倉（總開關 + B站許可），給刷B站那頁的橫幅用 */
     const holdState = { current: null }
     let bannerMounted = false
     let bannerTimer = 0
@@ -2147,7 +2147,7 @@ window.__ModuleLoader__.load({
     const unmountBanner = () => {
       if (!bannerMounted) return
       try {
-        window.__DSH_SLOT_MOUNT__?.('mnemos', null)
+        window.__DSH_SLOT_MOUNT__?.('Silt', null)
       } catch {
         /* 卸不掉就算了，橫幅自己會收起來 */
       }
@@ -2155,17 +2155,17 @@ window.__ModuleLoader__.load({
     }
 
     /**
-     * 把橫幅掛進刷B站設定頁（用 BiliBanner）。插在哪、要不要插全由 Mnemos 決定：
-     * 只認它給的 `data-mnemos-slot` 標記，不讀它別的 DOM。
+     * 把橫幅掛進刷B站設定頁（用 BiliBanner）。插在哪、要不要插全由 Silt 決定：
+     * 只認它給的 `data-Silt-slot` 標記，不讀它別的 DOM。
      */
     function syncBanner() {
       try {
         unmountBanner()
-        const host = document.querySelector('[data-mnemos-slot]')
+        const host = document.querySelector('[data-Silt-slot]')
         if (!host) return
         const api = window.__DSH_SLOT_MOUNT__
         if (typeof api !== 'function') return
-        api('mnemos', host, h(BiliBanner, { hold: holdState.current }))
+        api('Silt', host, h(BiliBanner, { hold: holdState.current }))
         bannerMounted = true
       } catch {
         /* 宿主換了掛載方式就不插橫幅，頁面其他部分照常 */
@@ -2199,7 +2199,7 @@ window.__ModuleLoader__.load({
         'div',
         {
           className: 'mn-inline-note',
-          'data-mnemos-banner': '1',
+          'data-Silt-banner': '1',
           style: { display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', padding: '6px 0 2px', fontSize: 11.5, color: 'var(--dsw-alias-label-secondary)' },
         },
         h('span', null, `${tt('bili_banner')}：${stance}`),
@@ -2219,7 +2219,7 @@ window.__ModuleLoader__.load({
             },
             onClick: () => {
               try {
-                window.__DSH_LAYOUT__?.selectPanel?.('mnemos')
+                window.__DSH_LAYOUT__?.selectPanel?.('Silt')
               } catch {
                 /* 導航失敗就留在他原本那一頁 */
               }
@@ -2272,8 +2272,8 @@ window.__ModuleLoader__.load({
         })()
         if (locale) {
           try {
-            locale.register('mnemos', 'en', DICT.en)
-            locale.register('mnemos', 'zh-CN', DICT.zh)
+            locale.register('Silt', 'en', DICT.en)
+            locale.register('Silt', 'zh-CN', DICT.zh)
           } catch {
             /* 註冊不上不影響：這頁自己帶字典 */
           }
@@ -2290,8 +2290,8 @@ window.__ModuleLoader__.load({
         const api = slots || ctx.slots
         if (!api) return
 
-        api.inject('sidebar.panellist', () => api.register({ name: 'sidebar.panellist', id: 'mnemos', order: 25, label: () => t() }, Glyph))
-        api.inject('main', () => api.register({ name: 'main', key: 'mnemos' }, Panel))
+        api.inject('sidebar.panellist', () => api.register({ name: 'sidebar.panellist', id: 'silt', order: 25, label: () => t() }, Glyph))
+        api.inject('main', () => api.register({ name: 'main', key: 'Silt' }, Panel))
       },
     }
   },

@@ -1,6 +1,6 @@
-- insert:
-    - id: mnemos
-      name: dsh-mnemos
+﻿- insert:
+    - id: silt
+      name: dsh-silt
       config:
         enabled: false
         bili: false

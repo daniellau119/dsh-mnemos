@@ -1,12 +1,12 @@
-<div align="center">
+﻿<div align="center">
 
-# dsh-mnemos
+# dsh-silt
 
 [English](README.en.md)
 
 > 跨會話記憶與人格插件 · 版本 `v1.7.0` · 2026-11-15
 
-`dsh-mnemos` 是為 DSH 宿主進程打造的長期記憶與人格成長引擎。它讓模型擁有一份會自我演化、分層沉澱、可被追問的記憶，以及一張由對話親手「長出來」的性格卡。
+`dsh-silt` 是為 DSH 宿主進程打造的長期記憶與人格成長引擎。它讓模型擁有一份會自我演化、分層沉澱、可被追問的記憶，以及一張由對話親手「長出來」的性格卡。
 
 ---
 
@@ -31,7 +31,7 @@
    所有狀態（記憶、性格、六維、設定）皆由 `ledger.jsonl` 重放而成，沒有第二份可被隨手改寫的狀態檔。
 
 2. **模型能加，不能改**  
-   刪除、回滾、匯入是「本人」的權限；模型只能寫入新記憶，或透過 `mnemos_void` 標記「不成立了」。
+   刪除、回滾、匯入是「本人」的權限；模型只能寫入新記憶，或透過 `silt_void` 標記「不成立了」。
 
 3. **怎麼記由插件決定，記什麼由模型決定**  
    字數上限、衰減公式、壓縮節奏全部寫死在程式碼裡；模型的自由度只在內容、層級、維度與重要性。
@@ -99,7 +99,7 @@ T3 每 7 天壓一次，但**每次抹掉的幅度自己也在衰減**（`25% ×
         └─ 否 → 還是 T3，等下一輪
 ```
 
-`mnemos_remember` 的 `tier` 只接受 1 / 3 / 4 / 5，**`tier: 2` 會被直接拒絕**。
+`silt_remember` 的 `tier` 只接受 1 / 3 / 4 / 5，**`tier: 2` 會被直接拒絕**。
 
 為什麼：如果模型能直接寫 T2，它就會繞過整條壓縮路徑，把自己想留的東西釘在終態上。
 
@@ -133,7 +133,7 @@ T3 每 7 天壓一次，但**每次抹掉的幅度自己也在衰減**（`25% ×
 
 ## 記憶怎麼存
 
-只有一個真相：`<DSH_HOME>/mnemos/ledger.jsonl`，append-only、每筆哈希串起。
+只有一個真相：`<DSH_HOME>/Silt/ledger.jsonl`，append-only、每筆哈希串起。
 
 ```
 hash = sha256({v, seq, ts, kind, actor, payload, prev})
@@ -150,16 +150,16 @@ hash = sha256({v, seq, ts, kind, actor, payload, prev})
 
 | 工具 | 做甚麼 |
 |---|---|
-| `mnemos_recall` | 搜記憶。唯一看得到 T4 的入口 |
-| `mnemos_remember` | 寫一條（T1 / T3 / T4 / T5，**T2 寫不進來**） |
-| `mnemos_void` | 標記作廢（內容不改） |
-| `mnemos_condense` | 把一條 T3 用更少的話重講一遍 |
-| `mnemos_persona` | 性格卡與自我認知 |
-| `mnemos_understanding` | 六維打分 |
-| `mnemos_duty` | 查/調自己的節律 |
-| `mnemos_inject` | 查/調注入量 |
-| `mnemos_bili` | 刷 B站參數 |
-| `mnemos_archive` | 驗哈希鏈 |
+| `silt_recall` | 搜記憶。唯一看得到 T4 的入口 |
+| `silt_remember` | 寫一條（T1 / T3 / T4 / T5，**T2 寫不進來**） |
+| `silt_void` | 標記作廢（內容不改） |
+| `silt_condense` | 把一條 T3 用更少的話重講一遍 |
+| `silt_persona` | 性格卡與自我認知 |
+| `silt_understanding` | 六維打分 |
+| `silt_duty` | 查/調自己的節律 |
+| `silt_inject` | 查/調注入量 |
+| `silt_bili` | 刷 B站參數 |
+| `silt_archive` | 驗哈希鏈 |
 
 模型沒有的：**刪除、改寫、回滾、匯入、設定總開關**。這些只有本人能碰。
 
@@ -288,5 +288,5 @@ hash = sha256({v, seq, ts, kind, actor, payload, prev})
 
 ## 文檔
 
-- [技術文檔 v2（`.docx`）](docs/dsh-mnemos-tech-v2.docx)
+- [技術文檔 v2（`.docx`）](docs/dsh-silt-tech-v2.docx)
 

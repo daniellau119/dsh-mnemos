@@ -1,14 +1,14 @@
-/**
- * dsh-mnemos · 心相 —— 宿主半端
+﻿/**
+ * dsh-silt · 心相 —— 宿主半端
  * ===========================================================================
  * 跨會話記憶、自進化性格與喜好；3D 星圖頁面在左側欄；谷時自主值守。
  *
  * 它做四件事：
- *   1. **記憶與人格的檔案**（`<DSH_HOME>/mnemos/ledger.jsonl`）：append-only、每筆帶
+ *   1. **記憶與人格的檔案**（`<DSH_HOME>/silt/ledger.jsonl`）：append-only、每筆帶
  *      sha256 串起的 `prev`/`hash`，記憶 / 人格 / 結構的改寫一律留 before/after 快照，
  *      可按快照 id 回滾。刪除、覆蓋、回滾、導入這一類不可逆動作只可以由本人確認。
  *   2. **注入**：把「現在的自己 + 仍記得的 + 還不明白的」壓成一段系統提示，每個會話都看得到。
- *   3. **七隻手**：mnemos_recall / remember / revise / shape / persona / archive / duty。
+ *   3. **七隻手**：silt_recall / remember / revise / shape / persona / archive / duty。
  *   4. **谷時值守**：落在 DeepSeek 優惠時段才排一輪自主任務，交給 Harness 自己開會話去決定
  *      「要不要刷 B站、要不要整理、要不要改自己」—— 決定不做也是有效決策。
  *
@@ -25,7 +25,7 @@ import { makeDuty } from './lib/duty.js'
 import { makeBili } from './lib/bili.js'
 import { makeFence, makeRoutes } from './lib/routes.js'
 
-export const name = 'mnemos'
+export const name = 'silt'
 export const inject = ['tools', 'systemPrompt', 'webServer']
 
 const HERE = dirname(fileURLToPath(import.meta.url))
@@ -38,28 +38,28 @@ const versionOf = () => {
   }
 }
 
-/** 插件家目錄：`<DSH_HOME>/mnemos`（沿用宿主給的 dshHomePath，拿不到才自己拼）。 */
+/** 插件家目錄：`<DSH_HOME>/silt`（沿用宿主給的 dshHomePath，拿不到才自己拼）。 */
 function resolveHome(ctx) {
   try {
     const p = ctx.get?.('dshHomePath')
     if (typeof p === 'function') {
-      const v = p('mnemos')
+      const v = p('silt')
       if (v) return String(v)
     } else if (typeof p === 'string' && p) {
-      return join(p, 'mnemos')
+      return join(p, 'silt')
     }
   } catch {
     /* 拿不到就走下面的兜底 */
   }
-  return join(process.env.DSH_HOME || join(homedir(), '.dsh'), 'mnemos')
+  return join(process.env.DSH_HOME || join(homedir(), '.dsh'), 'silt')
 }
 
 export function apply(ctx, config) {
   const home = resolveHome(ctx)
   const log = (msg) => {
     try {
-      if (ctx.logger?.info) ctx.logger.info(`[mnemos] ${msg}`)
-      else console.log(`[mnemos] ${msg}`)
+      if (ctx.logger?.info) ctx.logger.info(`[silt] ${msg}`)
+      else console.log(`[silt] ${msg}`)
     } catch {
       /* 日誌不該影響任何東西 */
     }
@@ -76,7 +76,7 @@ export function apply(ctx, config) {
   let toolCount = 0
   try {
     for (const definition of buildTools(store)) {
-      ctx.effect(() => ctx.tools.register(definition, { when: () => Boolean(store.cfg.enabled) }), `mnemos: ${definition.name}`)
+      ctx.effect(() => ctx.tools.register(definition, { when: () => Boolean(store.cfg.enabled) }), `silt: ${definition.name}`)
       toolCount += 1
     }
   } catch (err) {
@@ -88,7 +88,7 @@ export function apply(ctx, config) {
     ctx.effect(
       () =>
         ctx.systemPrompt.section({
-          name: 'mnemos',
+          name: 'silt',
           order: 850,
           text: () => {
             try {
@@ -98,7 +98,7 @@ export function apply(ctx, config) {
             }
           },
         }),
-      'mnemos: persona & memory injection',
+      'silt: persona & memory injection',
     )
   } catch (err) {
     log(`注入註冊失敗：${err?.message || err}`)
@@ -108,7 +108,7 @@ export function apply(ctx, config) {
   try {
     const fence = makeFence(ctx, log)
     const handler = makeRoutes({ store, duty, version: versionOf(), log, fence })
-    ctx.effect(() => ctx.webServer.register({ kind: 'prefix', path: '/api/mnemos', handler }), 'mnemos: /api/mnemos')
+    ctx.effect(() => ctx.webServer.register({ kind: 'prefix', path: '/api/silt', handler }), 'silt: /api/silt')
   } catch (err) {
     log(`HTTP 路由掛不上：${err?.message || err}`)
   }
@@ -131,7 +131,7 @@ export function apply(ctx, config) {
         clearInterval(timer)
         clearTimeout(boot)
       }
-    }, 'mnemos: duty tick')
+    }, 'silt: duty tick')
   } catch (err) {
     log(`值守心跳起不來：${err?.message || err}`)
   }
