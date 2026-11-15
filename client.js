@@ -2290,8 +2290,10 @@ window.__ModuleLoader__.load({
         const api = slots || ctx.slots
         if (!api) return
 
+        // `main` 的 key 必須等於 `sidebar.panellist` 的 id —— 宿主點側欄那一行時，
+        // 就是拿這個 id 去找 main 頁。兩者大小寫不同（'silt' / 'Silt'）就點不開。
         api.inject('sidebar.panellist', () => api.register({ name: 'sidebar.panellist', id: 'silt', order: 25, label: () => t() }, Glyph))
-        api.inject('main', () => api.register({ name: 'main', key: 'Silt' }, Panel))
+        api.inject('main', () => api.register({ name: 'main', key: 'silt' }, Panel))
       },
     }
   },
