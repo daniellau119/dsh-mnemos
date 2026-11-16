@@ -131,6 +131,7 @@ window.__ModuleLoader__.load({
         n_bili_h: 'B站 interval (h)',
         n_daily: 'Duties per day',
         n_inject: 'Memories injected',
+        n_slots: 'Slots (derived from the budget):',
         n_budget: 'Injection budget (chars)',
         n_ttl: 'Short-term kept (days)',
         valley_now: 'In a valley window',
@@ -350,6 +351,7 @@ window.__ModuleLoader__.load({
         n_bili_h: '刷B站間隔（小時）',
         n_daily: '每天值守次數',
         n_inject: '注入記憶條數',
+        n_slots: '注入位置（由預算推導）：',
         n_budget: '注入字數預算',
         n_ttl: '短期記憶保留（天）',
         valley_now: '正在谷時',
@@ -1943,11 +1945,14 @@ window.__ModuleLoader__.load({
         h(
           'div',
           { className: 'mn-grid2', style: { marginTop: 10 } },
-          h(Num, { label: t('n_reflect_h'), value: cfg.reflectionEveryHours, min: 1, max: 240, onCommit: (v) => void post('/config', { patch: { reflectionEveryHours: v } }) }),
-          h(Num, { label: t('n_bili_h'), value: cfg.biliEveryHours, min: 1, max: 240, onCommit: (v) => void post('/config', { patch: { biliEveryHours: v } }) }),
-          h(Num, { label: t('n_daily'), value: cfg.dutyMaxPerDay, min: 0, max: 24, onCommit: (v) => void post('/config', { patch: { dutyMaxPerDay: v } }) }),
-          h(Num, { label: t('n_inject'), value: cfg.injectCount, min: 0, max: 60, onCommit: (v) => void post('/config', { patch: { injectCount: v } }) }),
-          h(Num, { label: t('n_budget'), value: cfg.injectBudget, min: 400, max: 12000, onCommit: (v) => void post('/config', { patch: { injectBudget: v } }) }),
+          // 這些 min/max 必須跟 lib/model.js 的 INJECT_TUNABLES / RHYTHM_TUNABLES 一致。
+          // 不然頁面允許填 240 小時，saveConfig 卻把它夾到 72 —— 用戶以為設成功了，其實沒有。
+          h(Num, { label: t('n_reflect_h'), value: cfg.reflectionEveryHours, min: 6, max: 72, onCommit: (v) => void post('/config', { patch: { reflectionEveryHours: v } }) }),
+          h(Num, { label: t('n_bili_h'), value: cfg.biliEveryHours, min: 6, max: 72, onCommit: (v) => void post('/config', { patch: { biliEveryHours: v } }) }),
+          h(Num, { label: t('n_daily'), value: cfg.dutyMaxPerDay, min: 1, max: 4, onCommit: (v) => void post('/config', { patch: { dutyMaxPerDay: v } }) }),
+          // 條數不再手動調：它由 injectBudget 推導（每 50 字一個位置），所以這裡只顯示推導結果。
+          h('div', { className: 'mn-hint' }, `${t('n_slots')} ${state.derivedSlots ?? Math.floor((cfg.injectBudget || 0) / 50)}`),
+          h(Num, { label: t('n_budget'), value: cfg.injectBudget, min: 600, max: 3200, onCommit: (v) => void post('/config', { patch: { injectBudget: v } }) }),
           h(Num, { label: t('n_ttl'), value: cfg.tier4TtlDays, min: 0, max: 90, onCommit: (v) => void post('/config', { patch: { tier4TtlDays: v } }) }),
         ),
         h(
