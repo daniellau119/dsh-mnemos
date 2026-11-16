@@ -11,9 +11,10 @@ ledger*.jsonl
 config.json
 runtime.json
 
-# Local-only docs: generated tech doc + its build script
-docs/build_doc.py
+# Docs build scratch -- the script itself IS versioned (docs/build_doc.py),
+# because losing it means rewriting the whole tech doc generator from scratch.
 docs/*.tmp.*
+docs/~$*
 
 # Editor / OS
 .vscode/
