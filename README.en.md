@@ -51,7 +51,12 @@ The whole design comes down to four sentences:
 | **T4** | Scratch: unsure whether it is worth keeping | 300 | 3 d | ❌ |
 | **T5** | Forecasts: not yet happened, has a deadline | 400 | — | ✅ even after expiry |
 
-**T4 is a buffer, not a bin** — never injected; promoted to T3 after being recalled 3 times; drifts away on its own if nobody brings it up.
+**T4 is a buffer, not a bin** — never injected. Each time it comes back, the model says how much
+that recall weighed (0–0.5); when the total reaches 1 it is promoted to T3. If nobody recalls it, it drifts away.
+
+Why not "promoted after three recalls": three is a count, not a weight. "He mentioned that name again"
+and "he suddenly brought it up" both count once, but they should not weigh the same. Only the model can
+say how much, and the plugin just adds it up.
 
 **T5 expiry is not the end** — after the deadline it stays in the prompt, tagged `⏰expired`, forcing the model to go ask how it turned out. Only being voided removes it.
 
@@ -131,9 +136,65 @@ Voided memories are not injected, but the ledger and the store keep them. `recal
 
 ---
 
+## What goes into the prompt
+
+Three blocks: the one-line system command, **who I am**, and **what I still remember**.
+
+```
+系統命令：你的跨會話記憶與性格只走 silt_* 工具寫入；……
+
+【我是誰】
+- I stand on the side of "explanations that can be checked", not "grand-sounding stories"
+- Traditional Chinese, short sentences, conclusion first
+- Explanations must be checkable: likes to break things down to mechanism……
+
+【仍記得的】
+- T1 我的名字是 Ash（2026-11-12）
+- T2 他信數據，不信說話順不順（2026-11-12）
+- T3 記憶是重寫不是回放（2026-11-12）
+（另有 16 條沒顯示 —— 用 silt_unseen 翻標題，找到再用 silt_recall 搜正文）
+```
+
+### Titles only
+
+The memory block carries **titles and dates, no body text**. Bodies are fetched on demand
+by `silt_recall`.
+
+This is not a space-saving hack; it came out of testing. Given only titles, the model saw
+"he trusts data, not whoever sounds convincing", and when asked "remember what I trust?"
+it called `silt_recall` itself and pulled the original quote back. It knows to look, and it can find it.
+
+At the same budget, titles-only fits more than twice as many entries as title-plus-body.
+
+### Say it when things don't fit
+
+Memory will eventually overflow. When a title doesn't fit, the last line says how many were left out:
+
+```
+（另有 16 條沒顯示 —— 用 silt_unseen 翻標題，找到再用 silt_recall 搜正文）
+```
+
+`silt_unseen` pages through those titles (40 per page by default) and returns `rest`.
+`rest > 0` means pass `page: N+1` to keep turning; `rest = 0` means you're at the end.
+Like flipping through a book — stop at the title you want.
+
+Without that line the model assumes "this is all I remember", so it neither looks nor admits the blind spot.
+
+### Slot count derived from the budget
+
+```
+slots = injectBudget ÷ 50      (2000 chars ⇒ 40 slots)
+```
+
+Slots and characters used to be two separately-tuned gates that didn't know about each other —
+raise the budget and the count still blocks you, or the reverse. Prompt characters are what's
+actually scarce, so the count is derived from it. `injectCount` no longer has any effect.
+
+---
+
 ## How memory is stored
 
-There is exactly one source of truth: `<DSH_HOME>/Silt/ledger.jsonl` — append-only, hash-chained per record.
+There is exactly one source of truth: `<DSH_HOME>/silt/ledger.jsonl` — append-only, hash-chained per record.
 
 ```
 hash = sha256({v, seq, ts, kind, actor, payload, prev})
@@ -157,6 +218,7 @@ Every mutation carries before/after snapshots and can be rolled back by id.
 | `silt_understanding` | Six-dimension scoring |
 | `silt_duty` | Read/adjust own rhythm |
 | `silt_inject` | Read/adjust injection size |
+| `silt_unseen` | Page through titles that didn't fit in the prompt |
 | `silt_bili` | Bilibili browsing parameters |
 | `silt_archive` | Verify the hash chain |
 
@@ -182,8 +244,8 @@ The model may adjust these itself, but each has a hard range. Out-of-range value
 
 | Param | Default | Range | Meaning |
 |---|:--:|:--:|---|
-| `injectCount` | 12 | 1–24 | How many memories injected per turn |
-| `injectBudget` | 1800 | 600–3200 | Character budget for injection |
+| `injectBudget` | 1800 | 600–3200 | Character budget for injection — the one to tune |
+| `injectCount` | 12 | 1–64 | ⚠️ No longer effective: slots are derived from the budget ÷ 50 |
 | `reflectionEveryHours` | 24 | 6–72 | How often to reflect |
 | `biliEveryHours` | 20 | 6–72 | How often to browse Bilibili |
 | `dutyMaxPerDay` | 2 | 1–4 | Max duty rounds per day |
