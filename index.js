@@ -38,8 +38,21 @@ const versionOf = () => {
   }
 }
 
-/** 插件家目錄：`<DSH_HOME>/silt`（沿用宿主給的 dshHomePath，拿不到才自己拼）。 */
+/**
+ * 插件家目錄：`<DSH_HOME>/silt`。
+ *
+ * 覆寫順序（越前面越優先）：
+ *   1. `DSH_SILT_HOME` —— 測試用。指到臨時目錄，免得跑測試寫壞真帳本。
+ *   2. 宿主給的 dshHomePath
+ *   3. DSH_HOME 或 ~/.dsh 底下
+ *
+ * ⚠️ 為什麼要有第 1 項：store 的寫入路徑（tune / remember / void…）是真的會
+ *    append 到 ledger.jsonl 的。測試要是只「讀」沒關係，但一旦碰到寫入，
+ *   就會污染本人的記憶 —— 而且帳本是哈希鏈，刪記錄要重算，代價很高。
+ */
 function resolveHome(ctx) {
+  const override = String(process.env.DSH_SILT_HOME || '').trim()
+  if (override) return override
   try {
     const p = ctx.get?.('dshHomePath')
     if (typeof p === 'function') {
