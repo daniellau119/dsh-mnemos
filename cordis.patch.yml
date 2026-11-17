@@ -2,12 +2,15 @@
     - id: silt
       name: dsh-silt
       config:
+        # 這是「第一次裝上時的初值」，不是每次啟動的強制值 —— 一旦 config.json 存在，
+        # 就以 config.json 為準（見 lib/store.js load() 的優先序）。
         enabled: false
         bili: false
         reflection: true
         valleyOnly: true
         injectCount: 12
-        injectBudget: 1800
+        injectBudget: 2000
+        titlesOnly: true
         tier4TtlDays: 3
         reflectionEveryHours: 24
         biliEveryHours: 20
