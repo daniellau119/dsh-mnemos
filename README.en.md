@@ -355,10 +355,18 @@ The reflection brief is numbered:
 
 > Written in code. The model cannot change them.
 
-1. **Technical isolation** — code, paths and config never enter memory. Caught by structural signature, not topic keywords (so "she writes Python" is still remembered).
+1. **Technical isolation** — code, paths, config and plugin internals never enter memory. Caught by
+**structural signature** (code fences, `C:\…`, `npm install`, `.dsh/config.json`, `cordis`), not by topic
+keywords — so "she writes Python" and "he finds Docker annoying" are still remembered; what gets blocked is
+text that *looks like* a filesystem path or code.
+
+   All write paths go through the same gate, not a prompt-level request: `silt_remember` (including tags and
+   quote), `silt_persona` `self`, `silt_persona` `adjust`/`replace`, and `silt_import`. Writing one gets
+   **rejected with the reason**, not silently swallowed.
+
 2. **No silent erasure** — hash chain, see above.
 3. **No fabrication** — the evidence on each memory comes from the plugin, from the call that wrote it. The model cannot supply it.
-4. **No credentials** — ID numbers and card numbers are caught by shape.
+4. **No credentials** — ID numbers and card numbers are caught by shape, through the same gate.
 5. **Add, never modify** — write a correct one, or void the old one.
 
 ---
