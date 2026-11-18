@@ -10,7 +10,7 @@
 
 ---
 
-![DSH plugin](https://img.shields.io/badge/DSH-plugin-blue) ![version](https://img.shields.io/badge/v1.7.0-green)
+![DSH plugin](https://img.shields.io/badge/DSH-plugin-blue) ![version](https://img.shields.io/badge/v1.7.0-green) ![license](https://img.shields.io/badge/license-MIT-brightgreen)
 
 </div>
 
@@ -348,3 +348,14 @@ What actually governs quality is **limits, decay, compression, voiding** — not
 ## Docs
 
 - [Technical documentation (v2, Chinese, `.docx`)](docs/dsh-silt-tech-v2.docx)
+
+---
+
+## License
+
+[MIT](LICENSE) © 2026 Daniel Lau
+
+Use it, modify it, ship it commercially, keep it closed — just keep the copyright notice.
+No warranty: the plugin assumes the model judges honestly. It guards against format problems
+and credential leaks, not against a model writing a great deal about unimportant things.
+

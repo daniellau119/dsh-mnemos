@@ -3,6 +3,8 @@
   "version": "1.7.0",
   "private": true,
   "type": "module",
+  "license": "MIT",
+  "author": "Daniel Lau",
   "description": "Silt — cross-session memory, self-evolving persona and taste, drawn as a constellation.",
   "exports": {
     ".": "./index.js",
@@ -18,7 +20,8 @@
     "cordis.patch.yml",
     "locale/*.json",
     "icon.svg",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "dsh": {
     "bundle": {

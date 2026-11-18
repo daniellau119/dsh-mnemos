@@ -10,7 +10,7 @@
 
 ---
 
-![DSH plugin](https://img.shields.io/badge/DSH-plugin-blue) ![version](https://img.shields.io/badge/v1.7.0-green)
+![DSH plugin](https://img.shields.io/badge/DSH-plugin-blue) ![version](https://img.shields.io/badge/v1.7.0-green) ![license](https://img.shields.io/badge/license-MIT-brightgreen)
 
 </div>
 
@@ -417,4 +417,14 @@ hash = sha256({v, seq, ts, kind, actor, payload, prev})
 ## 文檔
 
 - [技術文檔 v2（`.docx`）](docs/dsh-silt-tech-v2.docx)
+
+---
+
+## License
+
+[MIT](LICENSE) © 2026 Daniel Lau
+
+隨你用、改、商用、閉源都可以，只要保留版權聲明。這個插件沒有任何擔保 ——
+它假設模型會誠實判斷，防得住格式與憑據外洩，防不住模型把不重要的事寫得很多。
+
 
