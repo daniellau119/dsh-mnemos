@@ -46,9 +46,9 @@ The whole design comes down to four sentences:
 | | What it is | Limit | Base half-life | In prompt |
 |:--:|---|:--:|:--:|:--:|
 | **T1** | Facts that stay true forever (name, birthday, stance) | 100 | 100 yr | ✅ |
-| **T2** | Gists settled out of experience | 200 | 400 d | ✅ |
-| **T3** | Experiences worth keeping | 1000 | 112 d | ✅ |
-| **T4** | Scratch: unsure whether it is worth keeping | 300 | 3 d | ❌ |
+| **T2** | Gists settled out of experience | 200 | 720 d | ✅ |
+| **T3** | Experiences worth keeping | 1000 | 180 d | ✅ |
+| **T4** | Scratch: unsure whether it is worth keeping | 300 | 7 d | ❌ |
 | **T5** | Forecasts: not yet happened, has a deadline | 400 | — | ✅ even after expiry |
 
 **A half-life is how long brightness takes to halve, not when the memory is deleted** — and recall extends it:
@@ -59,11 +59,11 @@ effective half-life = base half-life × 1.2^R      R = times recalled (capped at
 
 | Recalled | T3 effective half-life |
 |:--:|---:|
-| 0 times | 112 d |
+| 0 times | 180 d |
 | 5 times | 279 d |
-| 10 times | **693 d** |
+| 10 times | **1115 d** |
 
-Something recalled ten times still has 89% of its brightness after 112 days; an equally old memory nobody
+Something recalled ten times still has 89% of its brightness after 180 days; an equally old memory nobody
 recalled is down to 50%.
 
 Recall is written into the **half-life**, not into a per-turn ranking boost — because "important" should mean
@@ -97,16 +97,16 @@ T = total days since birth
 s = 1.2^R,  R = times recalled (capped at 10)
 ```
 
-A 975-character memory, never recalled:
+A 1000-character memory (the T3 limit), never recalled:
 
 ```
-day   0 → 975    day  28 → 440    day 112 → 239
-day   7 → 693    day  35 → 401    day 168 → 197 (T2)
-day  14 → 567    day  56 → 328
-day  21 → 491    day  90 → 264
+day   0 → 1000   day  28 → 451    day  90 → 271
+day   7 → 711    day  35 → 412    day 168 → 202
+day  14 → 581    day  56 → 336    day 175 → 198 (T2)
+day  21 → 504
 ```
 
-Retention climbs from 71% to 95%; it settles into a T2 after roughly 162 days.
+Retention climbs from 71% to 95%; it settles into a T2 on day 175 — the same day its brightness halves.
 
 Human forgetting drops hardest in the first few days and then flattens out — a linear curve is simply wrong.
 
@@ -129,9 +129,9 @@ the first one (28.9%).
 
 | Recalled | Days until T2 |
 |:--:|---:|
-| 0 times | 162 d |
-| 5 times | 403 d |
-| 10 times | **1002 d** |
+| 0 times | 175 d |
+| 5 times | 427 d |
+| 10 times | **1057 d** |
 
 The same memory, recalled ten times, lasts nearly three years before becoming a gist.
 
@@ -305,7 +305,7 @@ The model may adjust these itself, but each has a hard range. Out-of-range value
 | `reflectionEveryHours` | 24 | 6–72 | How often to reflect |
 | `biliEveryHours` | 20 | 6–72 | How often to browse Bilibili |
 | `dutyMaxPerDay` | 2 | 1–4 | Max duty rounds per day |
-| `tier4TtlDays` | 3 | 0–90 | Scratch retention in days (0 = never expires) |
+| `tier4TtlDays` | 30 | 0–90 | Scratch retention in days (0 = never expires) |
 
 Bilibili browsing has its own whitelist (`perDay`, `fetchPerRound`, `keywords`, …). Account, DMs, auto-comment and other sensitive items stay with the user and are not open to model adjustment.
 

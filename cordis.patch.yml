@@ -11,7 +11,7 @@
         injectCount: 12
         injectBudget: 2000
         titlesOnly: true
-        tier4TtlDays: 3
+        tier4TtlDays: 30
         reflectionEveryHours: 24
         biliEveryHours: 20
         dutyMaxPerDay: 2
