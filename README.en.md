@@ -199,7 +199,7 @@ Three blocks: the one-line system command, **who I am**, and **what I still reme
 ```
 系統命令：你的跨會話記憶與性格只走 silt_* 工具寫入；……
 
-【我是誰】
+【自我認知】
 - I stand on the side of "explanations that can be checked", not "grand-sounding stories"
 - Traditional Chinese, short sentences, conclusion first
 - Explanations must be checkable: likes to break things down to mechanism……
