@@ -43,13 +43,32 @@ The whole design comes down to four sentences:
 
 ## Five tiers
 
-| | What it is | Limit | Half-life | In prompt |
+| | What it is | Limit | Base half-life | In prompt |
 |:--:|---|:--:|:--:|:--:|
 | **T1** | Facts that stay true forever (name, birthday, stance) | 100 | 100 yr | ✅ |
 | **T2** | Gists settled out of experience | 200 | 400 d | ✅ |
 | **T3** | Experiences worth keeping | 1000 | 112 d | ✅ |
 | **T4** | Scratch: unsure whether it is worth keeping | 300 | 3 d | ❌ |
 | **T5** | Forecasts: not yet happened, has a deadline | 400 | — | ✅ even after expiry |
+
+**A half-life is how long brightness takes to halve, not when the memory is deleted** — and recall extends it:
+
+```
+effective half-life = base half-life × 1.2^R      R = times recalled (capped at 10)
+```
+
+| Recalled | T3 effective half-life |
+|:--:|---:|
+| 0 times | 112 d |
+| 5 times | 279 d |
+| 10 times | **693 d** |
+
+Something recalled ten times still has 89% of its brightness after 112 days; an equally old memory nobody
+recalled is down to 50%.
+
+Recall is written into the **half-life**, not into a per-turn ranking boost — because "important" should mean
+**it lives longer**, not "it sorts first every time". The latter lets one memory squat on the injection budget
+and pushes everything else out.
 
 **T4 is a buffer, not a bin** — never injected. Each time it comes back, the model says how much
 that recall weighed (0–0.5); when the total reaches 1 it is promoted to T3. If nobody recalls it, it drifts away.
@@ -68,18 +87,53 @@ say how much, and the plugin just adds it up.
 
 ## Compression: fast first, then slow
 
-T3 is condensed every 7 days, but **the amount erased each round is itself decaying** (`25% × 0.84^n`):
+T3 is condensed every 7 days. The target length is not "erase a fixed fraction each round" but a
+**power-law curve**:
 
 ```
-975 → 731 → 578 → 476 → 405 → 355 → 318 → 290
-    → 268 → 252 → 239 → 228 → 220 → 213 → 208 → 199 (T2)
+target = initial × (1 + 0.14 × T/s)^(-0.5)
+
+T = total days since birth
+s = 1.2^R,  R = times recalled (capped at 10)
 ```
 
-Retention climbs from 75% all the way to 98%. The full walk takes 16 rounds, 112 days.
+A 975-character memory, never recalled:
+
+```
+day   0 → 975    day  28 → 440    day 112 → 239
+day   7 → 693    day  35 → 401    day 168 → 197 (T2)
+day  14 → 567    day  56 → 328
+day  21 → 491    day  90 → 264
+```
+
+Retention climbs from 71% to 95%; it settles into a T2 after roughly 162 days.
 
 Human forgetting drops hardest in the first few days and then flattens out — a linear curve is simply wrong.
 
-Memories that get recalled compress more slowly: each recall winds the clock back 3.5 days.
+### Why a continuous curve, not a ladder
+
+An earlier version used a discrete ladder (erase `25% × 0.84^n` each round). Its fatal flaw: **debt accumulates**.
+
+A T3 recalled over and over for half a year without being condensed reaches `sinceDays = 187`, and the next
+round replays 26 steps at once — 975 characters collapse to 184 in one shot, a **drop of 81%**. The model
+only sees "squash this experience into a hundred-odd characters" and turns a whole arc into a broken
+fragment, skipping sixteen rounds of distillation.
+
+The continuous curve has no accumulated debt: whatever the day, it computes the length that day
+*should* have. No cliff, however long the interruption — measured, the worst single step never exceeds
+the first one (28.9%).
+
+### Recalled more often, longer timeline
+
+`s = 1.2^R` stretches the whole timeline — a real extension, not a one-slot deferral:
+
+| Recalled | Days until T2 |
+|:--:|---:|
+| 0 times | 162 d |
+| 5 times | 403 d |
+| 10 times | **1002 d** |
+
+The same memory, recalled ten times, lasts nearly three years before becoming a gist.
 
 <details>
 <summary>Compared with Ebbinghaus</summary>
@@ -87,9 +141,11 @@ Memories that get recalled compress more slowly: each recall winds the clock bac
 | Day | 1 | 7 | 21 | 56 | 90 |
 |---|---|---|---|---|---|
 | Ebbinghaus | 44% | 24% | 17% | 12% | 11% |
-| This plugin | 100% | 75% | 61% | 27% | 20% |
+| This plugin | 94% | 71% | 50% | 34% | 27% |
 
-Shape correlation 0.97, overall about 2× slower — this stores meaningful content, not nonsense syllables.
+Same direction, overall 2–3× slower — this stores meaningful content, not nonsense syllables.
+(`19/81 ≈ 0.2346` is the coefficient that matches Ebbinghaus exactly, but it drops 38.5% in seven days,
+which is too harsh, so 0.14 is used.)
 </details>
 
 ---
