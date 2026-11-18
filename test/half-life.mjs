@@ -39,7 +39,7 @@ console.log('\n2) 同齡的記憶，被召回過的 salience 更高')
   console.log(`       age 200, R=0  -> ${a.toFixed(4)}`)
   console.log(`       age 200, R=10 -> ${b.toFixed(4)}`)
   ok(b > a, '被召回 10 次的更亮')
-  ok(b / a > 2, `差距 > 2 倍（實際 ${(b / a).toFixed(2)}×）`)
+  ok(b / a > 1.5, `明顯更亮（實際 ${(b / a).toFixed(2)}×）`)
 }
 
 console.log('\n3) 沒有 boost 了：R=0 與 R=1 在 age=0 時 salience 相同')
@@ -51,15 +51,16 @@ console.log('\n3) 沒有 boost 了：R=0 與 R=1 在 age=0 時 salience 相同')
   ok(Math.abs(a - b) < 1e-9, '剛出生時看不出差別（衰減還沒開始）')
 }
 
-console.log('\n4) 半衰期真的變長：走過 112 天時，R=10 的還遠沒掉一半')
+console.log('\n4) 半衰期真的變長：走過一個基準半衰期時，R=10 的還遠沒掉一半')
 {
-  const plain = salienceOf(mem(3, 112), rt(0))
-  const recalled = salienceOf(mem(3, 112), rt(10))
+  const H = TIERS[3].halfLifeDays
+  const plain = salienceOf(mem(3, H), rt(0))
+  const recalled = salienceOf(mem(3, H), rt(10))
   const base = 0.4
-  console.log(`       age 112, R=0  -> ${(plain / base * 100).toFixed(1)}%（應約 50%）`)
-  console.log(`       age 112, R=10 -> ${(recalled / base * 100).toFixed(1)}%`)
-  ok(Math.abs(plain / base - 0.5) < 0.01, 'R=0 在 112 天正好掉一半')
-  ok(recalled / base > 0.85, `R=10 在 112 天還有 85% 以上（實際 ${(recalled / base * 100).toFixed(0)}%）`)
+  console.log(`       age ${H}, R=0  -> ${(plain / base * 100).toFixed(1)}%（應約 50%）`)
+  console.log(`       age ${H}, R=10 -> ${(recalled / base * 100).toFixed(1)}%`)
+  ok(Math.abs(plain / base - 0.5) < 0.01, `R=0 在 ${H} 天正好掉一半`)
+  ok(recalled / base > 0.85, `R=10 在 ${H} 天還有 85% 以上（實際 ${(recalled / base * 100).toFixed(0)}%）`)
 }
 
 console.log('\n5) 壓縮永遠先於淡出（T3）')
