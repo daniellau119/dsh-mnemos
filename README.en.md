@@ -4,13 +4,13 @@
 
 [中文](README.md)
 
-> Cross-session memory and persona plugin for DSH · `v1.7.0` · 2026-11-15
+> Cross-session memory and persona plugin for DSH · `v1.8.0` · 2026-11-19
 
 `dsh-silt` is a long-term memory and persona-growth engine built for the DSH host process. It gives a model a memory that self-evolves, settles in layers, and can be interrogated — plus a persona card that grows out of the conversation itself.
 
 ---
 
-![DSH plugin](https://img.shields.io/badge/DSH-plugin-blue) ![version](https://img.shields.io/badge/v1.7.0-green) ![license](https://img.shields.io/badge/license-MIT-brightgreen)
+![DSH plugin](https://img.shields.io/badge/DSH-plugin-blue) ![version](https://img.shields.io/badge/v1.8.0-green) ![license](https://img.shields.io/badge/license-MIT-brightgreen)
 
 </div>
 
@@ -153,11 +153,13 @@ which is too harsh, so 0.14 is used.)
 ## The model cannot reach T2
 
 ```
-model → condense(id, title, body)
+model → condense(id, title, body, mode)
            │
-        result ≤ 200 chars?
-        ├─ yes → T2 (system-generated, terminal)
-        └─ no  → still T3, wait for the next round
+        mode = recast?
+        ├─ yes → stays at T3 forever (a change of understanding, not of length)
+        └─ no  → result ≤ 200 chars?
+                 ├─ yes → T2 (system-generated, terminal)
+                 └─ no  → still T3, wait for the next round
 ```
 
 `silt_remember` only accepts `tier` 1 / 3 / 4 / 5 — **`tier: 2` is rejected outright**.
@@ -165,6 +167,23 @@ model → condense(id, title, body)
 Why: if the model could write T2 directly, it would bypass the whole compression path and pin whatever it likes onto a terminal state.
 
 **The plugin decides how short it gets compressed; the model decides what survives.**
+
+### Recast: the same event, a different understanding
+
+`mode: "recast"` takes the same path (old row archived, new row is a separate memory), but the purpose differs:
+
+| | `condense` | `recast` |
+|---|---|---|
+| Purpose | say it in fewer words | change how you see it |
+| `targetLen` | enforced | ignored |
+| Length | only gets shorter | may stay the same |
+| Tier | drops to T2 when short enough | **always stays at T3** |
+
+Six months on, recalling "he always works late at night" — the fact is unchanged, but the understanding becomes "he uses the night to hide from the day". That is a recast, not a compression.
+
+**A recast never settles into T2**, because it is a thing still being thought about and should not be nailed down. The original row stays in the ledger (`memory.recast`), so she can see how she used to see it.
+
+The division of labour with `silt_void`: void says "this is no longer true"; recast says "my view has changed".
 
 ---
 
@@ -239,7 +258,7 @@ Without that line the model assumes "this is all I remember", so it neither look
 ### Slot count derived from the budget
 
 ```
-slots = injectBudget ÷ 50      (2000 chars ⇒ 40 slots)
+slots = injectBudget ÷ 50      (3000 chars ⇒ 60 slots)
 ```
 
 Slots and characters used to be two separately-tuned gates that didn't know about each other —
@@ -269,8 +288,9 @@ Every mutation carries before/after snapshots and can be rolled back by id.
 | `silt_recall` | Search memories. The only entry point that can see T4 |
 | `silt_remember` | Write one (T1 / T3 / T4 / T5 — **T2 cannot be written**) |
 | `silt_void` | Mark as void (content unchanged) |
-| `silt_condense` | Retell a T3 in fewer words |
+| `silt_condense` | Retell a T3: `condense` to say less, `recast` to re-understand |
 | `silt_persona` | Persona card and self-view |
+| `silt_speak` | Reach the owner unprompted — **valley hours is the only gate** |
 | `silt_understanding` | Six-dimension scoring |
 | `silt_duty` | Read/adjust own rhythm |
 | `silt_inject` | Read/adjust injection size |

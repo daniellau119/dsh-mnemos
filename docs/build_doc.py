@@ -127,7 +127,7 @@ def table(headers, rows, widths=None):
 P('dsh-silt', bold=True, size=26, align=WD_ALIGN_PARAGRAPH.CENTER, space_after=2)
 P('跨會話記憶與人格插件', bold=True, size=15, align=WD_ALIGN_PARAGRAPH.CENTER, space_after=18)
 P('技術文檔', size=12, align=WD_ALIGN_PARAGRAPH.CENTER, space_after=30)
-P('版本 v1.7.0 · 2026-11-15', size=10, align=WD_ALIGN_PARAGRAPH.CENTER)
+P('版本 v1.8.0 · 2026-11-19', size=10, align=WD_ALIGN_PARAGRAPH.CENTER)
 P('基於 silt 插件目前的實際程式碼', size=9, italic=True, align=WD_ALIGN_PARAGRAPH.CENTER, space_after=40)
 
 P('本文檔描述插件目前真實的運作方式：資料怎麼存、記憶怎麼分層、什麼時候被壓縮、'
@@ -155,6 +155,7 @@ toc = [
     '14　工具清單',
     '15　可調參數總表',
     '16　常數速查',
+    '17　心跳與主動開口',
 ]
 for t in toc:
     P(t, size=10.5, space_after=2)
@@ -570,7 +571,7 @@ table(
         ['誰寫', '只有本人', '模型自己'],
         ['在哪寫', '心相頁的底座卡', 'silt_persona'],
         ['能改嗎', '本人隨時改', '模型自主修訂，不留待確認'],
-        ['進注入嗎', '✅ 原樣一字不加', '✅ 每輪，≤200 字'],
+        ['進注入嗎', '✅ 原樣一字不加（≤400 字）', '✅ 每輪，≤350 字'],
         ['有快照嗎', '✅', '✅'],
     ],
     widths=[2.6, 6.4, 7.5],
@@ -656,25 +657,28 @@ P('⚠️ cfg.injectCount 已經不參與注入。它留在設定裡只為了舊
   'silt_inject 的 tune 收到它會明確回報「這項現在不生效」。', size=9.5)
 
 doc.add_heading('12.3　【自我認知】：性格卡與自我認知', level=2)
-P('兩者每輪都注入，合計硬頂 INJECT_PERSONA_MAX = 500 字。'
-  '分配方式：先放性格卡（自己寫入時已限 200 字），剩下的額度給自我認知（它限 300 字）。'
-  '兩個上限相加剛好等於 500 —— 所以兩邊寫滿也不會互相擠。')
+P('兩者每輪都注入，合計硬頂 INJECT_PERSONA_MAX = 700 字。'
+  '分配方式：先放性格卡（自己寫入時已限 350 字），剩下的額度給自我認知（它限 350 字）。'
+  '兩個上限相加剛好等於 700 —— 所以兩邊寫滿也不會互相擠。')
 table(
     ['', '上限', '超出時', '注入順序'],
     [
-        ['性格卡 persona', '200 字（整張卡合計）', '拒絕，並說明超出多少', 'identity → voice → traits/taste（按 weight 排序）'],
-        ['自我認知 selfView', '300 字', '拒絕，並說明超出多少', '接在性格卡後面，吃剩下的額度'],
+        ['性格卡 persona', '350 字（整張卡合計）', '拒絕，並說明超出多少', 'identity → voice → traits/taste（按 weight 排序）'],
+        ['自我認知 selfView', '350 字', '拒絕，並說明超出多少', '接在性格卡後面，吃剩下的額度'],
     ],
     widths=[3.4, 4.4, 5.4, 5.0],
 )
 P('⚠️ 性格卡的字數是**整張卡合計**（identity + voice + 每條 trait/taste 的 key 與 value），'
-  '不是每個欄位各自 200。超了是拒絕，不是默默截斷 —— 寫的人不會不知道自己被削了。')
+  '不是每個欄位各自 350。超了是拒絕，不是默默截斷 —— 寫的人不會不知道自己被削了。')
+P('v1.8.0 起由 200/300 上調到 350/350。原本 200 是照「性格是濃縮」定的，'
+  '但這個插件要的不是濃縮，是要一個能在記憶裡長出性格來的東西 ——'
+  '200 字連底色都寫不完，而且她寫自己的空間比底座約束她的空間（400）還小。')
 P('性格卡按 weight 從高到低排，權重大的先進去。兩邊都空時整塊【自我認知】不出現，不留空標題。')
 
 doc.add_heading('12.4　預算怎麼分', level=2)
-code('injectBudget（預設 2000，硬頂 3200）\n'
+code('injectBudget（預設 1800，硬頂 3200）\n'
      '  ├─ 系統命令：clip 到 400 字\n'
-     '  ├─ 【自我認知】：性格卡 + 自我認知，合計 ≤ 500 字\n'
+     '  ├─ 【自我認知】：性格卡 + 自我認知，合計 ≤ 700 字\n'
      '  ├─ 【仍記得的】標題列\n'
      '  └─ 剩下的才給記憶行')
 P('逐行累加，裝不下就跳過**那一條**（不是從這裡開始全部丟掉）。'
@@ -733,7 +737,7 @@ table(
         ['2', '舊記憶壓縮', '有清單時展開：保留什麼、刪去什麼、怎麼提交；沒有時寫「這一輪沒有需要壓縮的記憶，略過。」'],
         ['3', '暫存區', 'silt_recall tier:4 帶 confidence: 0 掃一遍；在意的用 deliberate 再翻，並按份量給 confidence'],
         ['4', '記憶配額', 'silt_inject 看預算，覺得不合適就 tune injectBudget'],
-        ['5', '自我與性格', 'op:"self" 寫自我認知（3–5 句、≤300 字）；修訂性格卡（整張 ≤200 字）'],
+        ['5', '自我與性格', 'op:"self" 寫自我認知（3–5 句、≤350 字）；修訂性格卡（整張 ≤350 字）'],
         ['6', '未來的約定', '想到「還沒發生、有期限」的事就寫 T5，帶 expiresInDays 或 expiresAt'],
         ['7', '對本人了解', 'silt_recall 讀完之後，silt_understanding op:"set" 給六維打分'],
         ['8', '底線', '技術內容不入記憶、不捏造、B站權限範圍、刪除回滾屬本人'],
@@ -761,8 +765,9 @@ table(
         ['silt_unseen', '—', '翻那些擠不進提示詞的標題，一頁一頁翻（回傳帶 rest，0 就到底）'],
         ['silt_remember', '—', '寫一條記憶（T1 / T3 / T4 / T5；T2 寫不進來）'],
         ['silt_void', '—', '標記一條「不成立了」（內容不改，不進提示詞）'],
-        ['silt_condense', '—', '把一條 T3 用更少的話重講一遍（結果 ≤200 字時由系統轉成 T2）'],
-        ['silt_persona', 'read / adjust / replace / self', '性格卡（≤200 字）與自我認知（≤300 字）'],
+        ['silt_condense', '—', '重講一條 T3：condense 說短（≤200 字時轉 T2），recast 換一種理解（永遠留 T3）'],
+        ['silt_persona', 'read / adjust / replace / self', '性格卡（≤350 字）與自我認知（≤350 字）'],
+        ['silt_speak', 'read / say / defer', '主動找本人說話：read 看狀態，say 真的開口，defer 想說但決定先不說'],
         ['silt_archive', 'verify', '驗雜湊鏈'],
         ['silt_understanding', 'read / set', '六維打分'],
         ['silt_bili', 'status / tune', '刷B站參數（白名單 + 硬範圍）'],
@@ -822,9 +827,9 @@ table(
         ['召回延長半衰期底數', '1.2^R', 'model.js RECALL_HALF_BASE'],
         ['召回上限', '10 次', 'model.js RECALL_HALF_CAP'],
         ['底座注入上限', '400 字', 'model.js renderInjection clip'],
-        ['性格卡上限', '200 字', 'model.js PERSONA_MAX'],
-        ['自我認知上限', '300 字', 'model.js SELF_VIEW_MAX'],
-        ['性格＋自我注入合計', '500 字', 'model.js INJECT_PERSONA_MAX'],
+        ['性格卡上限', '350 字', 'model.js PERSONA_MAX'],
+        ['自我認知上限', '350 字', 'model.js SELF_VIEW_MAX'],
+        ['性格＋自我注入合計', '700 字', 'model.js INJECT_PERSONA_MAX'],
         ['每位置佔預算', '50 字', 'model.js CHARS_PER_SLOT'],
         ['注入位置上限', '64', 'model.js INJECT_TUNABLES.injectCount.max'],
         ['帳本 schema', '1', 'store.js SCHEMA_VERSION'],
@@ -845,6 +850,72 @@ bullets([
     'T5 過期仍留在提示詞裡，靠 salience 自然下沉。如果長期積累太多過期預測，可能擠佔額度 —— 目前接受這個代價，'
     '因為「一直不處理」本身就是一個值得看見的信號。',
 ])
+
+doc.add_heading('17　心跳與主動開口', level=1)
+
+doc.add_heading('17.1　值守心跳：60 分鐘一拍', level=2)
+P('index.js 起一個 setInterval，每 60 分鐘呼叫一次 duty.tick()。開機後 8 秒補一拍。')
+P('每一拍做的事：')
+code('store.verify()          ← 每 2 拍才做一次\n'
+     'expireStalePendings()   ← 待確認超過 7 天就標成 expired\n'
+     'settle()                ← 上一輪值守排程收尾\n'
+     'computeDue()            ← 反思 / B站 到期了嗎\n'
+     'inValley()              ← 現在是谷時嗎\n'
+     'dutiesToday()           ← 今天跑夠了嗎\n'
+     'arm()                   ← 都過了才起一輪')
+P('為什麼是 60 分鐘而不是 120 秒：它要判斷的全是日級的事 —— 反思 24 小時、B 站 20 小時、待確認 7 天。'
+  '而每一拍都要寫一次 runtime.json（lastTickAt）；120 秒等於一天寫 720 次，純粹是白寫。')
+P('唯一對延遲敏感的是 settle()（把跑完的排程從清單裡清掉），但它自己有保底：'
+  '超過 60 分鐘一律放掉，不管排程有沒有真的結束。所以晚一小時處理沒有影響。')
+
+doc.add_heading('17.2　雜湊鏈不是每一拍都驗', level=2)
+P('store.verify() 本身已經很輕：它只比對帳本的 size/mtime 指紋，沒變就回上次結果，不會重放。')
+P('但 duty.js 另外再讓一層：每 VERIFY_EVERY（= 2）拍才真的呼叫 verify()。'
+  '所以實際是約 2 小時驗一次鏈。真要立刻驗（頁面上按「驗鏈」）走的是 verify({ force: true })，跟心跳無關。')
+P('第一次觸發是在第 1 拍（tickCount % VERIFY_EVERY === 1），之後第 3、5、7… 拍。')
+
+doc.add_heading('17.3　主動開口：只有兩道閘', level=2)
+P('silt_speak 是唯一一條不用本人先問就能找他說話的路。條件只有兩個：谷時、模型自己判斷。')
+table(
+    ['刻意沒加的', '為什麼'],
+    [
+        ['每日上限', '用插件的偏好去蓋它對情境的判斷'],
+        ['冷卻間隔', '明明有話要說卻被「隔 12 小時」擋住，那是插件在說謊'],
+        ['打擾扣分 / 忙碌偵測', '模型比我更清楚當下是什麼情境'],
+        ['分數門檻', '要它先算一個數字再過線，它就會學會湊那個數字'],
+    ],
+    widths=[4.2, 12.3],
+)
+P('插件只做兩件模型做不到的事：看時間（現在是不是谷時）與送出去（它沒有排程服務）。'
+  '投遞走 schedule 服務 —— 本人看到的來源是「排程」，不是插件擅自插話，這是刻意留的痕跡。')
+P('想說而決定先不說，用 op:"defer" 寫一句理由，一樣落帳（speak.defer）。沉默不是失敗，是預設答案。')
+P('⚠️ 為什麼不用分數：加總式打分在邊界上很脆 —— 差一分就是「不說話」，差一分就是「說話」，'
+  '模型只會學會湊分數，而不是想清楚該不該說。')
+
+doc.add_heading('17.4　重述（recast）：同一件事，換一種理解', level=2)
+P('silt_condense 的 mode 參數分兩種用途，走同一條路（原條歸檔、新版是獨立一條）：')
+table(
+    ['', 'condense', 'recast'],
+    [
+        ['目的', '把話說短', '換一個看法'],
+        ['targetLen', '守上限', '不看'],
+        ['長度', '只能更短', '可以一樣'],
+        ['層級', '夠短就沉 T2', '永遠留 T3'],
+        ['帳本 kind', 'memory.condense', 'memory.recast'],
+    ],
+    widths=[3.0, 6.0, 6.0],
+)
+P('半年後再想起「他總在深夜工作」，事實沒變，但理解變成「他在用夜晚躲掉白天」—— 這是重述，不是壓縮。')
+P('重述永遠留 T3，因為那是「還在想」的東西，不該被釘死。原條進帳本留底，所以看得到自己曾經怎麼想的。')
+P('跟 void 的分工：void 說「這件事不成立了」；recast 說「我現在的看法變了」。')
+
+doc.add_heading('17.5　作廢的記憶：不注入，但搜得到', level=2)
+P('v1.8.0 修了一個真 bug：activeMemories() 檢查了 archived / tombstoned，卻漏了 voided ——'
+  '所以本人推翻過的記憶，照樣每輪出現在提示詞裡，等於拿錯的當對的用。')
+P('修的時候差點把檢索也砍掉：recall 原本走 activeMemories()，加上 voided 過濾之後搜不到了。'
+  '但「不注入」不等於「不存在」—— 本人推翻過的事，之後可能會想問「我是不是記錯過什麼」。')
+code('注入 → activeMemories()      排除 voided\n'
+     '檢索 → searchableMemories()   包含 voided（帶 voided: true）')
 
 doc.save(OUT)
 print('saved:', OUT)
