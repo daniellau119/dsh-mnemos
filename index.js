@@ -21,7 +21,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { Store } from './lib/store.js'
 import { buildTools } from './lib/tools.js'
-import { makeDuty } from './lib/duty.js'
+import { makeDuty, inValley } from './lib/duty.js'
 import { makeBili } from './lib/bili.js'
 import { makeFence, makeRoutes } from './lib/routes.js'
 
@@ -67,6 +67,29 @@ function resolveHome(ctx) {
   return join(process.env.DSH_HOME || join(homedir(), '.dsh'), 'silt')
 }
 
+/**
+ * 這一輪是不是「本人」推的。
+ *
+ * 排程投遞（值守、主動開口）開的輪次同樣會讓系統提示求值，但那不是他在，
+ * 不能拿來當「他正在用」的證據 —— 否則她會把自己發出去的訊息誤當成自己的回話，
+ * 冷卻永遠重置不完。認得出就排除，認不出（拿不到 agent）就當作是。
+ */
+function hasHumanTurn(ctx) {
+  try {
+    const agent = ctx.get?.('agents')
+    const msgs = agent?.currentSession?.()?.messages
+    if (!Array.isArray(msgs)) return true
+    for (let i = msgs.length - 1; i >= 0; i -= 1) {
+      const m = msgs[i]
+      if (m?.role !== 'user') continue
+      return m?.source?.kind !== 'schedule'
+    }
+  } catch {
+    /* 拿不到就當作是本人 —— 寧可多算一次，也不要她把自己的訊息當成回話 */
+  }
+  return true
+}
+
 export function apply(ctx, config) {
   const home = resolveHome(ctx)
   const log = (msg) => {
@@ -82,13 +105,16 @@ export function apply(ctx, config) {
   store.load()
   const duty = makeDuty({ ctx, store, log })
   store.duty = duty.info()
+  // 谷時判斷只留在 duty 一處（跟值守同一組窗口）——
+  // store 要用的時候向這裡拿，兩邊不會各有一套說法。
+  store.valleyOf = (now) => inValley(now)
   // 「允許它自己調用刷B站」的橋：這頁只給許可，刷不刷與那些參數由它自己判斷
   store.bili = makeBili({ store, webServer: ctx.get ? ctx.get('webServer') : undefined, log })
 
   /* ── 七隻手 ── */
   let toolCount = 0
   try {
-    for (const definition of buildTools(store)) {
+    for (const definition of buildTools(store, { speak: (req) => duty.speak(req) })) {
       ctx.effect(() => ctx.tools.register(definition, { when: () => Boolean(store.cfg.enabled) }), `silt: ${definition.name}`)
       toolCount += 1
     }
@@ -105,7 +131,9 @@ export function apply(ctx, config) {
           order: 850,
           text: () => {
             try {
-              return store.injectionText()
+              // humanTurn: 只有人的訊息在推這一輪時才算「他在」。
+              // 排程投遞（值守 / 主動開口）同樣會開一輪，但那不是他 —— 用 source 分辨。
+              return store.injectionText({ humanTurn: hasHumanTurn(ctx) })
             } catch (err) {
               return ''
             }
@@ -126,7 +154,20 @@ export function apply(ctx, config) {
     log(`HTTP 路由掛不上：${err?.message || err}`)
   }
 
-  /* ── 谷時值守心跳 ── */
+  /* ── 谷時值守心跳 ──
+   * 60 分鐘一拍（原本 120 秒）。
+   *
+   * 為什麼敢放到這麼鬆：這個心跳要做的判斷全是「日級」的 ——
+   * 反省到期 24 小時、B站到期 20 小時、待確認 7 天過期。
+   * 60 分鐘的粒度對這些節律完全夠，而每一拍都要寫一次 runtime.json（lastTickAt），
+   * 120 秒等於一天寫 720 次，純粹是白寫。
+   *
+   * 唯一對延遲敏感的是 settle()（上一輪值守排程收尾），但它真的不要緊：
+   *   最壞情況只是「armed 還指著上一輪 ⇒ 這段時間不會起新值守」，
+   *   而 settle() 自己有保底 —— 超過 60 分鐘一律放掉，不管排程有沒有真的結束。
+   *   起一輪值守的節律本來就是「一天一兩次」，多等一小時看不出來。
+   */
+  const DUTY_TICK_MS = 60 * 60_000
   try {
     ctx.effect(() => {
       let alive = true
@@ -134,7 +175,7 @@ export function apply(ctx, config) {
         if (!alive) return
         duty.tick().catch((err) => log(`值守心跳出錯：${err?.message || err}`))
       }
-      const timer = setInterval(beat, 120000)
+      const timer = setInterval(beat, DUTY_TICK_MS)
       timer.unref?.()
       // 開機後 8 秒補一拍：這個 timer 也要收得回來，否則插件卸載後它還會再叫一次
       const boot = setTimeout(beat, 8000)
